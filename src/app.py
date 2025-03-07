@@ -1,57 +1,41 @@
-from model import create_model, predict_selling_probability, scrape_tutti_bikes  # Import scrape_tutti_bikes
-import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
+from model import (
+    create_model, 
+    predict_selling_probability, 
+    scrape_tutti_bikes, 
+    prepare_data, 
+    extract_features, 
+    visualize_trends
+)
 import datetime
 
-def prepare_data(bike_data):
-    """Prepares the scraped bike data for modeling."""
-    today = datetime.datetime.today()
-
-    for bike in bike_data:
-        if bike['date_posted']:
-            bike['days_posted'] = (today - bike['date_posted']).days
-        else:
-            bike['days_posted'] = 0  # Default to 0 if no date is available
-
-    df = pd.DataFrame(bike_data)
-    df['price'] = df['price'].str.replace('CHF', '').str.replace(',', '').astype(float, errors='ignore')
-    df['price'] = df['price'].fillna(df['price'].median())
-
-    return df
-
-def create_model(df):
-    """Trains a machine learning model to predict the chance of selling."""
-    df['sold'] = df['days_posted'].apply(lambda x: 1 if x < 30 else 0)  # Bikes sold within 30 days
-
-    X = df[['price', 'days_posted']]
-    y = df['sold']
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    model = RandomForestClassifier(n_estimators=100)
-    model.fit(X_train, y_train)
-
-    # Evaluate the model
-    y_pred = model.predict(X_test)
-    print(classification_report(y_test, y_pred))
-
-    return model
-
-def predict_selling_probability(model, price, days_posted):
-    """Predicts the chance of a sale based on price and days posted."""
-    prediction = model.predict([[price, days_posted]])
-    return prediction[0]  # 0 = not sold, 1 = sold
-
 if __name__ == "__main__":
-    # Example usage
-    bike_data = scrape_tutti_bikes("https://www.tutti.ch/de/li/ganze-schweiz/velo")  # Now using the imported function
+    # Step 1: Scrape data
+    bike_data = scrape_tutti_bikes("https://www.tutti.ch/de/q/motorraeder/Ak8CrbW90b3JjeWNsZXOUwMDAwA?sorting=newest&page=1")
+
+    if not bike_data:
+        print("No data scraped. Exiting program.")
+        exit()
+
+    # Debugging log to inspect scraped data
+    print("Sample of scraped data:", bike_data[:5])  # Print first 5 items to check
+
+    # Step 2: Prepare data
     df = prepare_data(bike_data)
+    print("Prepared dataframe:")
+    print(df.head())  # Check the dataframe structure
+
+    # Step 3: Extract additional features
+    df = extract_features(df)
+
+    # Step 4: Visualize trends
+    visualize_trends(df)
+
+    # Step 5: Create model
     model = create_model(df)
     
-    # Test prediction with a sample
-    test_price = 500  # Example price
-    test_days_posted = 20  # Example days posted
+    # Step 6: Test prediction with sample data
+    test_price = 500
+    test_days_posted = 20
     sale_chance = predict_selling_probability(model, test_price, test_days_posted)
-    print(f"Prediction: {'Sold' if sale_chance == 1 else 'Not Sold'}")
+    
+    print(f"Prediction: {'Sold' if sale_chance > 0.5 else 'Not Sold'} with a confidence of {sale_chance:.2%}")
