@@ -20,14 +20,6 @@ DB_NAME = "tutti_bikes"
 COLLECTION_NAME = "listings"
 
 # MongoDB connection
-def create_unique_index():
-    """Creates a unique index on the 'url' field in MongoDB."""
-    client = MongoClient(MONGO_URI)
-    db = client[DB_NAME]
-    collection = db[COLLECTION_NAME]
-    collection.create_index("url", unique=True)
-    st.info("✔️ Unique index on 'url' field created (if not already present).")
-
 def save_to_mongo(data):
     """Saves scraped data to MongoDB while avoiding duplicates."""
     if not data:
@@ -40,18 +32,23 @@ def save_to_mongo(data):
 
     new_data_count = 0
     for item in data:
-        try:
+        # Use the URL as a unique identifier
+        if not collection.find_one({"url": item["url"]}):
             collection.insert_one(item)
             new_data_count += 1
-        except Exception as e:
-            if "duplicate key error" in str(e):
-                st.info(f"Duplicate entry skipped: {item.get('url', 'Unknown')}")
-            else:
-                st.error(f"Error saving entry: {e}")
 
     st.success(f"✅ {new_data_count} new listings saved to MongoDB.")
     if len(data) > new_data_count:
         st.info(f"ℹ️ {len(data) - new_data_count} duplicates were skipped.")
+
+# Debugging function
+def check_ip():
+    """Displays the public IP address."""
+    try:
+        response = requests.get("https://api64.ipify.org?format=json")
+        st.write(f"🌍 Your Public IP: {response.json()['ip']}")
+    except Exception as e:
+        st.error(f"❌ Failed to fetch public IP: {e}")
 
 # Scraping Function
 def scrape_tutti_bikes():
@@ -59,7 +56,6 @@ def scrape_tutti_bikes():
     bike_data = []
     session = requests.Session()
     session.headers.update(HEADERS)
-    unique_urls = set()  # Track unique URLs
 
     for attempt in range(MAX_RETRIES):
         for page in range(1, MAX_PAGES + 1):
@@ -81,29 +77,41 @@ def scrape_tutti_bikes():
                     continue
 
                 for listing in listings:
-                    # Extract URL
-                    link_tag = listing.find("a", href=True)
-                    url = "https://www.tutti.ch" + link_tag["href"] if link_tag else None
+                    # Extract link (Unique identifier for listings)
+                    link = listing.find("a")
+                    listing_url = "https://www.tutti.ch" + link["href"] if link else "No URL found"
 
-                    if url and url not in unique_urls:
-                        unique_urls.add(url)  # Mark URL as seen
+                    # Extract title
+                    title_element = listing.find("div", class_="MuiBox-root mui-style-1haxbqe")
+                    title = title_element.text.strip() if title_element else "No title found"
 
-                        # Extract other data fields
-                        name = listing.text.strip() if listing else "No title found"
-                        desc_parent = listing.find_next("div", class_="MuiBox-root mui-style-wkoz8z")
-                        desc = desc_parent.text.strip() if desc_parent else "No description found"
-                        price_span = listing.find_next("span", class_="MuiTypography-root MuiTypography-body1 mui-style-1e5o6ii")
-                        price = price_span.text.strip() if price_span else "No price found"
-                        date_place_span = listing.find_next("span", class_="MuiTypography-root MuiTypography-body1 mui-style-13hgjc4")
-                        date_place = date_place_span.text.strip() if date_place_span else "No date & place found"
+                    # Extract description
+                    desc_parent = listing.find("div", class_="MuiBox-root mui-style-wkoz8z")
+                    desc_element = desc_parent.find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-1e5o6ii") if desc_parent else None
+                    description = desc_element.text.strip() if desc_element else "No description found"
 
-                        bike_data.append({
-                            "url": url,  # Unique identifier
-                            "title": name,
-                            "description": desc,
-                            "price": price,
-                            "date_place": date_place
-                        })
+                    # Extract price
+                    price_container = listing.find("div", class_="MuiBox-root mui-style-1haxbqe")  # Adjust this class if needed
+                    price_element = price_container.find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-1e5o6ii") if price_container else None
+                    price = price_element.text.strip() if price_element else "No price found"
+
+                    # Extract date & place
+                    date_place_element = listing.find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-13hgjc4")
+                    date_place = date_place_element.text.strip() if date_place_element else "No date & place found"
+
+                    # Separate date and place
+                    date_place_parts = date_place.split(", ")
+                    place = date_place_parts[0] if len(date_place_parts) > 0 else "No place found"
+                    date = ", ".join(date_place_parts[1:]) if len(date_place_parts) > 1 else "No date found"
+
+                    bike_data.append({
+                        "url": listing_url,
+                        "title": title,
+                        "description": description,
+                        "price": price,
+                        "place": place,
+                        "date": date
+                    })
 
             except requests.RequestException as e:
                 st.error(f"❌ Request failed for page {page}: {e}")
@@ -122,8 +130,8 @@ def scrape_tutti_bikes():
 def main():
     st.title("Bike Scraper 🚴‍♂️")
 
-    if st.button("Create Unique Index"):
-        create_unique_index()
+    if st.button("Check IP"):
+        check_ip()
 
     if st.button("Start Scraping"):
         with st.spinner("Scraping in progress..."):

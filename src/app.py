@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 import streamlit as st
-import dateparser
 import time
 from pymongo import MongoClient
 
@@ -22,16 +21,25 @@ COLLECTION_NAME = "listings"
 
 # MongoDB connection
 def save_to_mongo(data):
-    """Saves scraped data to MongoDB."""
+    """Saves scraped data to MongoDB while avoiding duplicates."""
     if not data:
         st.warning("⚠️ No data to save.")
         return
-    
+
     client = MongoClient(MONGO_URI)
     db = client[DB_NAME]
     collection = db[COLLECTION_NAME]
-    collection.insert_many(data)
-    st.success(f"✅ {len(data)} listings saved to MongoDB.")
+
+    new_data_count = 0
+    for item in data:
+        # Use the URL as a unique identifier
+        if not collection.find_one({"url": item["url"]}):
+            collection.insert_one(item)
+            new_data_count += 1
+
+    st.success(f"✅ {new_data_count} new listings saved to MongoDB.")
+    if len(data) > new_data_count:
+        st.info(f"ℹ️ {len(data) - new_data_count} duplicates were skipped.")
 
 # Debugging function
 def check_ip():
@@ -44,14 +52,14 @@ def check_ip():
 
 # Scraping Function
 def scrape_tutti_bikes():
-    """Scrapes bike listings from Tutti.ch and avoids 404 errors."""
+    """Scrapes bike listings from Tutti.ch."""
     bike_data = []
     session = requests.Session()
     session.headers.update(HEADERS)
 
     for attempt in range(MAX_RETRIES):
         for page in range(1, MAX_PAGES + 1):
-            url = f"{BASE_URL}&page={page}"  # Ensure correct URL format
+            url = f"{BASE_URL}&page={page}"
 
             try:
                 st.write(f"📡 Fetching: {url}")
@@ -69,28 +77,41 @@ def scrape_tutti_bikes():
                     continue
 
                 for listing in listings:
-                    # Extract name (title)
-                    name = listing.text.strip() if listing else "No title found"
-                    
+                    # Extract link (Unique identifier for listings)
+                    link = listing.find("a")
+                    listing_url = "https://www.tutti.ch" + link["href"] if link else "No URL found"
+
+                    # Extract title
+                    title_element = listing.find("div", class_="MuiBox-root mui-style-1haxbqe")
+                    title = title_element.text.strip() if title_element else "No title found"
+
                     # Extract description
-                    desc_parent = listing.find_next("div", class_="MuiBox-root mui-style-wkoz8z")
-                    desc = desc_parent.text.strip() if desc_parent else "No description found"
+                    desc_parent = listing.find("div", class_="MuiBox-root mui-style-wkoz8z")
+                    desc_element = desc_parent.find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-1e5o6ii") if desc_parent else None
+                    description = desc_element.text.strip() if desc_element else "No description found"
 
                     # Extract price
-                    price_span = listing.find_next("span", class_="MuiTypography-root MuiTypography-body1 mui-style-1e5o6ii")
-                    price = price_span.text.strip() if price_span else "No price found"
+                    price_element = listing.find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-1e5o6ii")
+                    price = price_element.text.strip() if price_element else "No price found"
 
                     # Extract date & place
-                    date_place_span = listing.find_next("span", class_="MuiTypography-root MuiTypography-body1 mui-style-13hgjc4")
-                    date_place = date_place_span.text.strip() if date_place_span else "No date & place found"
+                    date_place_element = listing.find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-13hgjc4")
+                    date_place = date_place_element.text.strip() if date_place_element else "No date & place found"
+
+                    # Separate date and place
+                    date_place_parts = date_place.split(", ")
+                    place = date_place_parts[0] if len(date_place_parts) > 0 else "No place found"
+                    date = date_place_parts[1] if len(date_place_parts) > 1 else "No date found"
 
                     bike_data.append({
-                        "title": name,
-                        "description": desc,
+                        "url": listing_url,
+                        "title": title,
+                        "description": description,
                         "price": price,
-                        "date_place": date_place
+                        "place": place,
+                        "date": date
                     })
-            
+
             except requests.RequestException as e:
                 st.error(f"❌ Request failed for page {page}: {e}")
                 continue
@@ -104,6 +125,7 @@ def scrape_tutti_bikes():
     st.error("❌ No listings found after retries. Exiting.")
     return None
 
+
 # Streamlit UI
 def main():
     st.title("Bike Scraper 🚴‍♂️")
@@ -114,7 +136,7 @@ def main():
     if st.button("Start Scraping"):
         with st.spinner("Scraping in progress..."):
             data = scrape_tutti_bikes()
-        
+
         if not data:
             st.warning("❌ No listings found. Check the website or try later.")
         else:
