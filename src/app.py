@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import streamlit as st
 import dateparser
 import time
+from pymongo import MongoClient
 
 # Constants
 HEADERS = {
@@ -15,18 +16,35 @@ HEADERS = {
 BASE_URL = "https://www.tutti.ch/de/q/motorraeder/Ak8CrbW90b3JjeWNsZXOUwMDAwA?sorting=newest"
 MAX_PAGES = 5
 MAX_RETRIES = 3
+MONGO_URI = "mongodb://localhost:27017/"
+DB_NAME = "tutti_bikes"
+COLLECTION_NAME = "listings"
+
+# MongoDB connection
+def save_to_mongo(data):
+    """Saves scraped data to MongoDB."""
+    if not data:
+        st.warning("⚠️ No data to save.")
+        return
+    
+    client = MongoClient(MONGO_URI)
+    db = client[DB_NAME]
+    collection = db[COLLECTION_NAME]
+    collection.insert_many(data)
+    st.success(f"✅ {len(data)} listings saved to MongoDB.")
 
 # Debugging function
 def check_ip():
+    """Displays the public IP address."""
     try:
         response = requests.get("https://api64.ipify.org?format=json")
         st.write(f"🌍 Your Public IP: {response.json()['ip']}")
     except Exception as e:
-        st.write(f"❌ Failed to fetch public IP: {e}")
+        st.error(f"❌ Failed to fetch public IP: {e}")
 
 # Scraping Function
 def scrape_tutti_bikes():
-    """Scrapes bike listings from Tutti.ch with correct class names and debugging."""
+    """Scrapes bike listings from Tutti.ch and avoids 404 errors."""
     bike_data = []
     session = requests.Session()
     session.headers.update(HEADERS)
@@ -36,59 +54,54 @@ def scrape_tutti_bikes():
             url = f"{BASE_URL}&page={page}"  # Ensure correct URL format
 
             try:
-                st.write(f"📡 Fetching: {url}")  # Debugging output
+                st.write(f"📡 Fetching: {url}")
                 response = session.get(url, timeout=10)
 
-                st.write(f"🔍 Status Code: {response.status_code}")
-                st.write(f"🔄 Response URL: {response.url}")
-
                 if response.status_code != 200:
-                    st.write(f"⚠️ Error: Unable to fetch page {page} (Status Code: {response.status_code})")
+                    st.warning(f"⚠️ Error {response.status_code}: Unable to fetch page {page}")
                     continue
 
                 soup = BeautifulSoup(response.text, 'html.parser')
-
-                # Debugging: Print first 1000 characters of HTML
-                st.write("📝 First 1000 characters of HTML:\n", response.text[:1000])
-
-                # Find listings
-                listings = soup.find_all("article")  # Find all articles (listings)
+                listings = soup.find_all("div", class_="MuiBox-root mui-style-1haxbqe")
 
                 if not listings:
-                    st.warning(f"⚠️ No listings found on page {page}.")
+                    st.warning(f"⚠️ No listings found on page {page}. Possible class name changes?")
                     continue
 
                 for listing in listings:
-                    title_elem = listing.find("h3")
-                    title = title_elem.text.strip() if title_elem else "No Title"
+                    # Extract name (title)
+                    name = listing.text.strip() if listing else "No title found"
+                    
+                    # Extract description
+                    desc_parent = listing.find_next("div", class_="MuiBox-root mui-style-wkoz8z")
+                    desc = desc_parent.text.strip() if desc_parent else "No description found"
 
-                    price_elem = listing.find("span", class_="sc-1x0vz2r-0")
-                    price = price_elem.text.strip() if price_elem else "N/A"
+                    # Extract price
+                    price_span = listing.find_next("span", class_="MuiTypography-root MuiTypography-body1 mui-style-1e5o6ii")
+                    price = price_span.text.strip() if price_span else "No price found"
 
-                    location_elem = listing.find("span", class_="sc-1f99l62-0")
-                    location = location_elem.text.strip() if location_elem else "Unknown"
-
-                    date_elem = listing.find("span", class_="sc-fubCfw")
-                    date_posted = dateparser.parse(date_elem.text.strip()) if date_elem else None
+                    # Extract date & place
+                    date_place_span = listing.find_next("span", class_="MuiTypography-root MuiTypography-body1 mui-style-13hgjc4")
+                    date_place = date_place_span.text.strip() if date_place_span else "No date & place found"
 
                     bike_data.append({
-                        "title": title,
+                        "title": name,
+                        "description": desc,
                         "price": price,
-                        "location": location,
-                        "date_posted": date_posted
+                        "date_place": date_place
                     })
-
+            
             except requests.RequestException as e:
-                st.write(f"❌ Request failed for page {page}: {e}")
+                st.error(f"❌ Request failed for page {page}: {e}")
                 continue
 
         if bike_data:
             return bike_data
 
-        st.write(f"⚠️ No listings found. Retrying in 10 seconds... (Attempt {attempt + 1}/{MAX_RETRIES})")
+        st.warning(f"⚠️ No listings found. Retrying in 10 seconds... (Attempt {attempt + 1}/{MAX_RETRIES})")
         time.sleep(10)
 
-    st.write("❌ No listings found after retries. Exiting.")
+    st.error("❌ No listings found after retries. Exiting.")
     return None
 
 # Streamlit UI
@@ -106,6 +119,7 @@ def main():
             st.warning("❌ No listings found. Check the website or try later.")
         else:
             st.success(f"✅ Scraped {len(data)} listings successfully!")
+            save_to_mongo(data)
             st.write(data[:5])  # Show first 5 results
 
 if __name__ == "__main__":
