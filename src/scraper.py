@@ -32,7 +32,6 @@ def save_to_mongo(data):
 
     new_data_count = 0
     for item in data:
-        # Use the URL as a unique identifier
         if not collection.find_one({"url": item["url"]}):
             collection.insert_one(item)
             new_data_count += 1
@@ -70,47 +69,45 @@ def scrape_tutti_bikes():
                     continue
 
                 soup = BeautifulSoup(response.text, 'html.parser')
-                listings = soup.find_all("div", class_="MuiBox-root mui-style-1haxbqe")
+                st.code(soup.prettify()[:2000])  # Debug: Print first 2000 characters of HTML
+
+                listings = soup.find_all("div", class_="MuiBox-root mui-style-1p6vdao")
 
                 if not listings:
                     st.warning(f"⚠️ No listings found on page {page}. Possible class name changes?")
                     continue
 
                 for listing in listings:
-                    # Extract link (Unique identifier for listings)
-                    link = listing.find("a")
-                    listing_url = "https://www.tutti.ch" + link["href"] if link else "No URL found"
-
-                    # Extract title
+                    link_element = listing.find("a", class_="mui-style-blugjv")
+                    listing_url = "https://www.tutti.ch" + link_element["href"] if link_element else "No URL found"
+                    
                     title_element = listing.find("div", class_="MuiBox-root mui-style-1haxbqe")
                     title = title_element.text.strip() if title_element else "No title found"
-
-                    # Extract description
-                    desc_parent = listing.find("div", class_="MuiBox-root mui-style-wkoz8z")
-                    desc_element = desc_parent.find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-1e5o6ii") if desc_parent else None
+                    
+                    desc_element = listing.find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-1yf92kr")
                     description = desc_element.text.strip() if desc_element else "No description found"
-
-                    # Extract price
-                    price_container = listing.find("div", class_="MuiBox-root mui-style-1haxbqe")  # Adjust this class if needed
-                    price_element = price_container.find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-1e5o6ii") if price_container else None
+                    
+                    price_element = listing.find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-1yf92kr")
                     price = price_element.text.strip() if price_element else "No price found"
-
-                    # Extract date & place
-                    date_place_element = listing.find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-13hgjc4")
+                    
+                    date_place_element = listing.find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-18rb2ut")
                     date_place = date_place_element.text.strip() if date_place_element else "No date & place found"
-
-                    # Separate date and place
+                    
                     date_place_parts = date_place.split(", ")
                     place = date_place_parts[0] if len(date_place_parts) > 0 else "No place found"
                     date = ", ".join(date_place_parts[1:]) if len(date_place_parts) > 1 else "No date found"
-
+                    
+                    image_element = listing.find("img")
+                    image_url = image_element["src"] if image_element else "No image found"
+                    
                     bike_data.append({
                         "url": listing_url,
                         "title": title,
                         "description": description,
                         "price": price,
                         "place": place,
-                        "date": date
+                        "date": date,
+                        "image": image_url
                     })
 
             except requests.RequestException as e:
@@ -142,7 +139,7 @@ def main():
         else:
             st.success(f"✅ Scraped {len(data)} listings successfully!")
             save_to_mongo(data)
-            st.write(data[:5])  # Show first 5 results
+            st.write(data[:5])
 
 if __name__ == "__main__":
     main()
