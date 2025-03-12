@@ -4,37 +4,32 @@ from datetime import datetime, timedelta
 import re
 
 def convert_relative_date(date_str):
-    """Converts relative dates like 'Heute' or 'Gestern' to actual dates."""
     today = datetime.today()
     if "Heute" in date_str:
-        return today.strftime("%d/%m/%Y")
+        return today.strftime("%d.%m.%Y")
     elif "Gestern" in date_str:
-        return (today - timedelta(days=1)).strftime("%d/%m/%Y")
+        return (today - timedelta(days=1)).strftime("%d.%m.%Y")
     return date_str  # Keep the original if it's already a date
 
 def calculate_days_posted(date_str):
-    """Calculates how many days ago the bike was posted."""
     try:
-        listing_date = datetime.strptime(date_str, "%d/%m/%Y")
+        listing_date = datetime.strptime(date_str, "%d.%m.%Y")
         return (datetime.today() - listing_date).days
     except ValueError:
         return None  # If the format is unexpected
 
 def is_new_bike(title, description):
-    """Determines if the listing describes a new bike."""
     keywords = ["neu", "new", "ungebraucht", "brandneu"]
     combined_text = (title + " " + description).lower()
     return any(keyword in combined_text for keyword in keywords)
 
 def extract_price(price_str):
-    """Extracts numeric price from a formatted string."""
     if not price_str:
         return None
-    price_numbers = re.findall(r'\d+', price_str.replace("'", ""))  # Handle CHF 1'200.– format
+    price_numbers = re.findall(r'\d+', price_str.replace("'", ""))
     return int("".join(price_numbers)) if price_numbers else None
 
 def scrape_tutti_bikes(url, max_pages=2):
-    """Scrapes bike listings from Tutti and returns structured data."""
     bike_data = []
     page = 1
 
@@ -45,7 +40,7 @@ def scrape_tutti_bikes(url, max_pages=2):
             break
 
         soup = BeautifulSoup(response.text, 'html.parser')
-        listings = soup.find_all("div", class_="mui-style-qlw8p1")  # Update class if necessary
+        listings = soup.find_all("div", class_="mui-style-qlw8p1")
 
         if not listings:
             print("No more listings found.")
@@ -66,17 +61,22 @@ def scrape_tutti_bikes(url, max_pages=2):
             price_str = price_span.text.strip() if price_span else None
             price = extract_price(price_str) if price_str else None
 
-            date_place_element = listing.find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-18rb2ut")
+            date_place_element = listing.find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-1846fkf")
             date_place = date_place_element.text.strip() if date_place_element else None
+
+            place_with_zip, formatted_date, days_posted = "No place found", "No date found", None
 
             if date_place:
                 date_place_parts = date_place.split(", ")
-                place_with_zip = date_place_parts[0] if len(date_place_parts) > 0 else "No place found"
-                date = ", ".join(date_place_parts[1:]) if len(date_place_parts) > 1 else "No date found"
-                formatted_date = convert_relative_date(date) if date else None
-                days_posted = calculate_days_posted(formatted_date) if formatted_date else None
-            else:
-                place_with_zip, formatted_date, days_posted = "No place found", "No date found", None
+                if len(date_place_parts) == 3:
+                    place = date_place_parts[0]
+                    date = date_place_parts[2]
+                else:
+                    place, date = date_place, None
+                
+                formatted_date = convert_relative_date(date) if date else "No date found"
+                days_posted = calculate_days_posted(formatted_date) if formatted_date != "No date found" else None
+                place_with_zip = f"{place} {date}" if place and date else place
 
             is_new = is_new_bike(title, description)
 
@@ -92,7 +92,7 @@ def scrape_tutti_bikes(url, max_pages=2):
                 "date": formatted_date,
                 "days_posted": days_posted,
                 "is_new": is_new,
-                "is_bargain": None,  # Placeholder
+                "is_bargain": None,
                 "image": image_url
             })
 
