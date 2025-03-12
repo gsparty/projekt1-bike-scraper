@@ -70,13 +70,14 @@ def scrape_tutti_bikes(url, max_pages=2):
                 date_place_parts = date_place.split(", ")
                 if len(date_place_parts) == 3:
                     place = date_place_parts[0]
+                    zip_code = date_place_parts[1]
                     date = date_place_parts[2]
+                    place_with_zip = f"{place} {zip_code}"
                 else:
-                    place, date = date_place, None
+                    place_with_zip, date = date_place, None
                 
                 formatted_date = convert_relative_date(date) if date else "No date found"
                 days_posted = calculate_days_posted(formatted_date) if formatted_date != "No date found" else None
-                place_with_zip = f"{place} {date}" if place and date else place
 
             is_new = is_new_bike(title, description)
 
