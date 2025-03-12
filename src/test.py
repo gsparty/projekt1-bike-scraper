@@ -1,19 +1,26 @@
 import requests
+from bs4 import BeautifulSoup
 
-url = "https://www.tutti.ch/de/q/motorraeder/Ak8CrbW90b3JjeWNsZXOUwMDAwA?sorting=newest"
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
-    "Accept-Language": "de-DE,de;q=0.9",
-    "Referer": "https://www.google.com",
-    "DNT": "1",
-    "Connection": "keep-alive"
-}
+# Function to fetch the HTML of a page
+def fetch_html(url):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+    }
+    try:
+        # Sending GET request to the URL
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Will raise an exception for HTTP error responses
+        # Parse the HTML content with BeautifulSoup
+        soup = BeautifulSoup(response.content, 'html.parser')
+        return soup
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching the HTML: {e}")
+        return None
 
-response = requests.get(url, headers=headers)
+# Example URL (you can replace this with the actual URL you want to scrape)
+url = "https://www.tutti.ch/de/market/motorrad"
 
-print(f"Status Code: {response.status_code}")
-print(f"Response Content: {response.text[:500]}")
-
-response = requests.get("https://api64.ipify.org?format=json")
-print(response.json())  # Show your public IP
-
+# Fetch and print the HTML content
+html_soup = fetch_html(url)
+if html_soup:
+    print(html_soup.prettify())  # Pretty print the HTML for easier reading

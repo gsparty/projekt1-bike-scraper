@@ -6,12 +6,10 @@ import re
 def convert_relative_date(date_str):
     """Converts relative dates like 'Heute' or 'Gestern' to actual dates."""
     today = datetime.today()
-
     if "Heute" in date_str:
         return today.strftime("%d/%m/%Y")
     elif "Gestern" in date_str:
         return (today - timedelta(days=1)).strftime("%d/%m/%Y")
-
     return date_str  # Keep the original if it's already a date
 
 def calculate_days_posted(date_str):
@@ -30,7 +28,9 @@ def is_new_bike(title, description):
 
 def extract_price(price_str):
     """Extracts numeric price from a formatted string."""
-    price_numbers = re.findall(r'\d+', price_str)
+    if not price_str:
+        return None
+    price_numbers = re.findall(r'\d+', price_str.replace("'", ""))  # Handle CHF 1'200.– format
     return int("".join(price_numbers)) if price_numbers else None
 
 def scrape_tutti_bikes(url, max_pages=2):
@@ -45,7 +45,7 @@ def scrape_tutti_bikes(url, max_pages=2):
             break
 
         soup = BeautifulSoup(response.text, 'html.parser')
-        listings = soup.find_all("div", class_="mui-style-qlw8p1")  # Adjust class name if needed
+        listings = soup.find_all("div", class_="mui-style-qlw8p1")  # Update class if necessary
 
         if not listings:
             print("No more listings found.")
@@ -53,7 +53,7 @@ def scrape_tutti_bikes(url, max_pages=2):
 
         for listing in listings:
             link_element = listing.find("a", href=True)
-            listing_url = "https://www.tutti.ch" + link_element["href"] if link_element else "No URL found"
+            listing_url = f"https://www.tutti.ch{link_element['href']}" if link_element else None
 
             title_element = listing.find("div", class_="MuiBox-root mui-style-1haxbqe")
             title = title_element.text.strip() if title_element else "No title found"
@@ -61,24 +61,27 @@ def scrape_tutti_bikes(url, max_pages=2):
             desc_element = listing.find("div", class_="MuiBox-root mui-style-xe4gv6")
             description = desc_element.text.strip() if desc_element else "No description found"
 
-            price_element = listing.find("div", class_="MuiBox-root mui-style-1fhgjcy").find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-1yf92kr")
-            price_str = price_element.text.strip() if price_element else "No price found"
-            price = extract_price(price_str)  # Convert to numeric value
+            price_element = listing.find("div", class_="MuiBox-root mui-style-1fhgjcy")
+            price_span = price_element.find("span") if price_element else None
+            price_str = price_span.text.strip() if price_span else None
+            price = extract_price(price_str) if price_str else None
 
             date_place_element = listing.find("span", class_="MuiTypography-root MuiTypography-body1 mui-style-18rb2ut")
-            date_place = date_place_element.text.strip() if date_place_element else "No date & place found"
+            date_place = date_place_element.text.strip() if date_place_element else None
 
-            # Extract place and date correctly
-            date_place_parts = date_place.split(", ")
-            place_with_zip = date_place_parts[0] if len(date_place_parts) > 0 else "No place found"
-            date = ", ".join(date_place_parts[1:]) if len(date_place_parts) > 1 else "No date found"
+            if date_place:
+                date_place_parts = date_place.split(", ")
+                place_with_zip = date_place_parts[0] if len(date_place_parts) > 0 else "No place found"
+                date = ", ".join(date_place_parts[1:]) if len(date_place_parts) > 1 else "No date found"
+                formatted_date = convert_relative_date(date) if date else None
+                days_posted = calculate_days_posted(formatted_date) if formatted_date else None
+            else:
+                place_with_zip, formatted_date, days_posted = "No place found", "No date found", None
 
-            # Convert relative date
-            formatted_date = convert_relative_date(date)
-
-            # Calculate derived fields
-            days_posted = calculate_days_posted(formatted_date)
             is_new = is_new_bike(title, description)
+
+            image_element = listing.find("img")
+            image_url = image_element["src"] if image_element else "No image found"
 
             bike_data.append({
                 "url": listing_url,
@@ -89,8 +92,8 @@ def scrape_tutti_bikes(url, max_pages=2):
                 "date": formatted_date,
                 "days_posted": days_posted,
                 "is_new": is_new,
-                "is_bargain": None,  # Placeholder, to be calculated later
-                "image": listing.find("img")["src"] if listing.find("img") else "No image found"
+                "is_bargain": None,  # Placeholder
+                "image": image_url
             })
 
         print(f"Scraped page {page} with {len(listings)} listings.")
