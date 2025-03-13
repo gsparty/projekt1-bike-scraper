@@ -5,7 +5,7 @@ import requests
 
 # Constants
 BASE_URL = "https://www.tutti.ch/de/q/motorraeder/Ak8CrbW90b3JjeWNsZXOUwMDAwA?sorting=newest"
-HISTORICAL_DATA_PATH = r'C:\Users\danie\MDM\projekt1-bike-scraper\src\historical_data.csv'  # Update path
+HISTORICAL_DATA_PATH = 'historical_data.csv'  # Update path
 
 # Debugging function
 def check_ip():

@@ -140,6 +140,10 @@ def determine_bargains(new_listings_df, historical_data_df):
             if is_underpriced and is_price_per_age_good and is_price_per_condition_good and is_location_price_good:
                 new_listings_df.at[index, 'is_bargain'] = True
 
+        # Debugging statement to check the distribution of 'is_bargain'
+        print("Distribution of 'is_bargain':")
+        print(new_listings_df['is_bargain'].value_counts())
+
         # Ensure there are both positive and negative samples
         if new_listings_df['is_bargain'].sum() == 0 or new_listings_df['is_bargain'].sum() == len(new_listings_df):
             raise ValueError("The target 'is_bargain' needs to have more than 1 class. Got 1 class instead.")
@@ -171,6 +175,12 @@ def train_model(data_df):
         # Split data into training and testing sets
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+        # Debugging statements
+        print("Training data shape:", X_train.shape)
+        print("Testing data shape:", X_test.shape)
+        print("Training target distribution:", y_train.value_counts())
+        print("Testing target distribution:", y_test.value_counts())
+
         # Define the pipeline
         pipeline = Pipeline([
             ('scaler', StandardScaler()),
@@ -197,6 +207,8 @@ def train_model(data_df):
         print(f"Accuracy: {accuracy_score(y_test, y_pred)}")
         print(f"Precision: {precision_score(y_test, y_pred, zero_division=0)}")
         print(f"Recall: {recall_score(y_test, y_pred, zero_division=0)}")
+        print(f"F1 Score: {f1_score(y_test, y_pred, zero_division=0)}")
+
         # Save the model
         joblib.dump(best_model, 'best_model.pkl')
 
@@ -204,7 +216,7 @@ def train_model(data_df):
     except Exception as e:
         print(f"Error training model: {e}")
         return None
-
+    
 def load_model():
     """Loads the trained model from a file."""
     try:
