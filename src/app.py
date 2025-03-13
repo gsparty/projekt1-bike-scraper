@@ -1,36 +1,11 @@
 import streamlit as st
-from pymongo import MongoClient
 from scraper import scrape_tutti_bikes
-from model import prepare_data, extract_features, determine_bargains, load_historical_data
+from model import prepare_data, extract_features, determine_bargains, load_historical_data, train_model, load_model
 import requests
 
 # Constants
-MONGO_URI = "mongodb://localhost:27017/"
-DB_NAME = "tutti_bikes"
-COLLECTION_NAME = "listings"
 BASE_URL = "https://www.tutti.ch/de/q/motorraeder/Ak8CrbW90b3JjeWNsZXOUwMDAwA?sorting=newest"
 HISTORICAL_DATA_PATH = r'C:\Users\danie\MDM\projekt1-bike-scraper\src\historical_data.csv'  # Update path
-
-# MongoDB connection
-def save_to_mongo(data):
-    """Saves scraped data to MongoDB while avoiding duplicates."""
-    if data.empty:  # Check if the DataFrame is empty
-        st.warning("⚠️ No data to save.")
-        return
-
-    client = MongoClient(MONGO_URI)
-    db = client[DB_NAME]
-    collection = db[COLLECTION_NAME]
-
-    new_data_count = 0
-    for _, item in data.iterrows():  # Iterate through rows in the DataFrame
-        if not collection.find_one({"url": item["url"]}):  # Ensure no duplicates by checking URL
-            collection.insert_one(item.to_dict())  # Convert the row to a dictionary
-            new_data_count += 1
-
-    st.success(f"✅ {new_data_count} new listings saved to MongoDB.")
-    if len(data) > new_data_count:
-        st.info(f"ℹ️ {len(data) - new_data_count} duplicates were skipped.")
 
 # Debugging function
 def check_ip():
@@ -71,7 +46,6 @@ def main():
             st.warning("❌ No listings found. Check the website or try later.")
         else:
             st.success(f"✅ Scraped {len(data)} listings successfully!")
-            save_to_mongo(data)
             st.write(data.head())  # Show first few results
 
             # Prepare and visualize data
@@ -92,6 +66,14 @@ def main():
                     st.error(f"❌ Failed to determine bargains: {e}")
             except Exception as e:
                 st.error(f"❌ Error preparing and extracting features: {e}")
+
+    if st.button("Train Model"):
+        with st.spinner("Training model..."):
+            model = train_model(historical_data_df)
+            if model:
+                st.success("✅ Model trained successfully!")
+            else:
+                st.error("❌ Model training failed.")
 
 if __name__ == "__main__":
     main()

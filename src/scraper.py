@@ -3,7 +3,10 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import re
 import pandas as pd
-from pymongo import MongoClient
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def convert_relative_date(date_str):
     today = datetime.today()
@@ -42,31 +45,12 @@ def clean_scraped_data(scraped_data):
         scraped_data['date'] = scraped_data['date'].apply(lambda x: convert_relative_date(x) if pd.notnull(x) else "No date found")
         scraped_data['date'] = pd.to_datetime(scraped_data['date'], errors='coerce', dayfirst=True)
 
-        scraped_data['days_posted'] = scraped_data['days_posted'].apply(lambda x: int(x) if pd.notnull(x) else 0)
+        scraped_data['days_posted'] = scraped_data['date'].apply(lambda x: calculate_days_posted(x.strftime("%d.%m.%Y")) if pd.notnull(x) else 0)
         
         return scraped_data
     except Exception as e:
-        print(f"Error cleaning scraped data: {e}")
+        logging.error(f"Error cleaning scraped data: {e}")
         return None
-
-def save_to_mongodb(df, db_name='motorbikes', collection_name='listings'):
-    try:
-        client = MongoClient("mongodb://localhost:27017/")
-        db = client[db_name]
-        collection = db[collection_name]
-
-        df = df.fillna({"date": None})  # Fill NaT with None to avoid serialization issues
-        records = df.to_dict('records')
-
-        # Ensure no duplicates by checking URL
-        for item in records:
-            if not collection.find_one({"url": item.get("url")}):  # Use .get to prevent KeyError
-                collection.insert_one(item)
-                print(f"Inserted {item['url']} into MongoDB")
-            else:
-                print(f"Duplicate found: {item.get('url')}, skipping.")
-    except Exception as e:
-        print(f"Error saving data to MongoDB: {e}")
 
 def scrape_tutti_bikes(url, max_pages=2):
     bike_data = []
@@ -75,14 +59,14 @@ def scrape_tutti_bikes(url, max_pages=2):
     while page <= max_pages:
         response = requests.get(f"{url}&page={page}")
         if response.status_code != 200:
-            print(f"Error fetching page {page}: {response.status_code}")
+            logging.error(f"Error fetching page {page}: {response.status_code}")
             break
 
         soup = BeautifulSoup(response.text, 'html.parser')
         listings = soup.find_all("div", class_="mui-style-qlw8p1")
 
         if not listings:
-            print("No more listings found.")
+            logging.warning("No more listings found.")
             break
 
         for listing in listings:
@@ -136,12 +120,10 @@ def scrape_tutti_bikes(url, max_pages=2):
                 "image": image_url
             })
 
-        print(f"Scraped page {page} with {len(listings)} listings.")
+        logging.info(f"Scraped page {page} with {len(listings)} listings.")
         page += 1
 
     df = pd.DataFrame(bike_data)
     df = clean_scraped_data(df)
-
-    save_to_mongodb(df)
 
     return df
