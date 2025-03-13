@@ -1,169 +1,108 @@
-from datetime import datetime, timedelta
 import pandas as pd
+from datetime import datetime
 import re
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split, RandomizedSearchCV, KFold
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.preprocessing import StandardScaler
-from xgboost import XGBRegressor
-import numpy as np
 
-def prepare_data(bike_data):
-    """Cleans and prepares the scraped bike data for modeling."""
-    today = datetime.today()
+def load_historical_data(file_path):
+    """Loads historical bike data from a CSV file."""
+    try:
+        historical_data = pd.read_csv(file_path, encoding='utf-8')
 
-    for bike in bike_data:
-        # Handle "heute" and "gestern" and extract zip code
-        if bike['date']:
-            if 'heute' in bike['date'].lower():
-                bike['date'] = today.strftime('%d/%m/%Y')
-            elif 'gestern' in bike['date'].lower():
-                bike['date'] = (today - timedelta(days=1)).strftime('%d/%m/%Y')
+        # Check for missing or invalid values
+        print("Rows with missing dates:")
+        print(historical_data[historical_data['date'].isnull()])
 
-            # Extract zip code from the date string (if present)
-            zip_code_match = re.search(r'\b\d{4}\b', bike['date'])
-            if zip_code_match:
-                bike['place'] = f"{bike['place']} {zip_code_match.group()}"
-                bike['date'] = re.sub(r'\b\d{4}\b', '', bike['date']).strip()
+        print("Rows with missing prices:")
+        print(historical_data[historical_data['price'].isnull()])
 
-            # Parse the date and calculate days posted
-            parsed_date = pd.to_datetime(bike['date'], dayfirst=True)
-            bike['days_posted'] = (today - parsed_date).days if parsed_date else None
-        else:
-            bike['days_posted'] = None  # Default to None if no date is available
+        # Convert the 'price' column to numeric (removing CHF and commas)
+        historical_data['price'] = pd.to_numeric(historical_data['price'].str.replace('CHF', '').str.replace(',', ''), errors='coerce')
+        print("Price conversion check (first few rows):")
+        print(historical_data[['price']].head())
 
-    # Convert to dataframe
-    df = pd.DataFrame(bike_data)
+        # Convert 'date' column to datetime
+        historical_data['date'] = pd.to_datetime(historical_data['date'], errors='coerce')
+        print("Date conversion check (first few rows):")
+        print(historical_data[['date']].head())
 
-    # Handle missing or invalid prices
-    df['price'] = (df['price']
-                   .astype(str)
-                   .str.replace('CHF', '', regex=False)
-                   .str.replace(',', '', regex=False)
-                   .str.extract(r'(\d+)', expand=False)  # Extract numeric part
-                   .astype(float))
+        # Check data types and the first few rows after conversion
+        print("Historical Data Type:", type(historical_data))  # Should be DataFrame
+        print("Historical Data Head:")
+        print(historical_data.head())  # Display first few rows of data
+        
+        return historical_data
+    except Exception as e:
+        print(f"Error loading historical data: {e}")
+        return None
 
-    # Fill missing prices with median price
-    df['price'].fillna(df['price'].median(), inplace=True)
+def prepare_data(data_df):
+    """Prepares and cleans the data for analysis."""
+    try:
+        # Clean price column by removing 'CHF' and commas, then convert to numeric
+        data_df['price'] = pd.to_numeric(data_df['price'].str.replace('CHF', '').str.replace(',', ''), errors='coerce')
 
-    return df
+        # Clean date column by converting to datetime, invalid entries will be set to NaT
+        data_df['date'] = pd.to_datetime(data_df['date'], errors='coerce')
 
-def extract_features(df):
-    """Adds additional useful features to the data."""
-    
-    # Extract bike type based on title keywords
-    df['bike_type'] = df['title'].apply(lambda x: 
-        'Mountain' if 'mountain' in x.lower() else 
-        'Road' if 'road' in x.lower() else 
-        'Other')
+        # Check for missing values and report them
+        if data_df['price'].isnull().sum() > 0:
+            print(f"Warning: {data_df['price'].isnull().sum()} missing price values.")
+            # Optional: Replace missing prices with a default value or drop rows
+            data_df['price'].fillna(data_df['price'].median(), inplace=True)  # Fills with the median price
 
-    # Convert bike types into dummy variables (one-hot encoding)
-    df = pd.get_dummies(df, columns=['bike_type'], drop_first=True)
+        if data_df['date'].isnull().sum() > 0:
+            print(f"Warning: {data_df['date'].isnull().sum()} missing date values.")
+            # Optional: Replace missing dates with a default date or drop rows
+            data_df['date'].fillna(datetime.now(), inplace=True)  # Fills with the current date
 
-    # Extract numerical values from price
-    df['price'] = df['price'].apply(lambda x: float(re.sub(r'[^\d.]', '', str(x))) if pd.notnull(x) else x)
+        return data_df
+    except Exception as e:
+        print(f"Error preparing data: {e}")
+        return None
 
-    # Analyze description for key selling terms
-    df['is_new'] = df['description'].apply(lambda x: 1 if isinstance(x, str) and 'new' in x.lower() else 0)
-    df['is_bargain'] = df['description'].apply(lambda x: 1 if isinstance(x, str) and 'bargain' in x.lower() else 0)
-    df['is_urgent'] = df['description'].apply(lambda x: 1 if isinstance(x, str) and 'urgent' in x.lower() else 0)
 
-    # Time-based features (extract season from date)
-    df['season'] = df['date'].apply(lambda x: 
-        (pd.to_datetime(x, dayfirst=True).month % 12 // 3 + 1) if isinstance(x, str) and pd.to_datetime(x, dayfirst=True) is not None else None)
+def extract_features(data_df):
+    """Extracts features from the data for further analysis."""
+    try:
+        # Example: Extracting days since posted
+        data_df['days_posted'] = (datetime.now() - data_df['date']).dt.days
 
-    # Extract day of the week from date
-    df['day_of_week'] = df['date'].apply(lambda x: 
-        pd.to_datetime(x, dayfirst=True).dayofweek if isinstance(x, str) and pd.to_datetime(x, dayfirst=True) is not None else None)
+        # Feature for age of the bike (optional, if data has an 'age' column)
+        data_df['age'] = data_df['age'].fillna(0).astype(int)  # Assuming 'age' column exists
 
-    # Extract hour of the day from date
-    df['hour_of_day'] = df['date'].apply(lambda x: 
-        pd.to_datetime(x, dayfirst=True).hour if isinstance(x, str) and pd.to_datetime(x, dayfirst=True) is not None else None)
+        return data_df
+    except Exception as e:
+        print(f"Error extracting features: {e}")
+        return None
 
-    # Normalize numerical features
-    scaler = StandardScaler()
-    df[['price', 'days_posted']] = scaler.fit_transform(df[['price', 'days_posted']])
+def determine_bargains(new_listings_df, historical_data_df):
+    """Compares new listings against historical data to find bargains."""
+    try:
+        # Checking if both dataframes are not empty
+        if new_listings_df.empty or historical_data_df.empty:
+            raise ValueError("Both new data and historical data must be non-empty")
 
-    return df
+        # Calculating price metrics from historical data
+        median_price = historical_data_df['price'].median()
+        mean_price = historical_data_df['price'].mean()
+        price_per_age = historical_data_df.groupby('age')['price'].mean()
+        price_per_condition = historical_data_df.groupby('condition')['price'].mean()
+        location_avg_prices = historical_data_df.groupby('location')['price'].mean()
 
-def determine_bargains(df, historical_data):
-    """Determines if a listing is a bargain based on historical data."""
-    # Train a regression model to predict expected price
-    features = ['condition', 'age', 'location', 'other_features']
-    X = historical_data[features]
-    y = historical_data['price']
+        # Compare new listings to historical averages and calculate 'is_bargain'
+        new_listings_df['is_bargain'] = False
 
-    # Train-test split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        for index, row in new_listings_df.iterrows():
+            # Price comparison logic: check if the price is below the median, and factor in age, condition, and location
+            is_underpriced = row['price'] < median_price
+            is_price_per_age_good = row['price'] < price_per_age.get(row['age'], median_price)
+            is_price_per_condition_good = row['price'] < price_per_condition.get(row['condition'], median_price)
+            is_location_price_good = row['price'] < location_avg_prices.get(row['location'], median_price)
 
-    # Model training
-    model = RandomForestRegressor(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
+            # Combine all metrics into the 'is_bargain' column
+            if is_underpriced and is_price_per_age_good and is_price_per_condition_good and is_location_price_good:
+                new_listings_df.at[index, 'is_bargain'] = True
 
-    # Predictions
-    df['expected_price'] = model.predict(df[features])
-    df['residuals'] = df['price'] - df['expected_price']
-
-    # Determine bargains
-    threshold = -500  # Example threshold for bargain classification
-    df['is_bargain'] = df['residuals'].apply(lambda x: 1 if x < threshold else 0)
-
-    return df
-
-def select_and_evaluate_model(X, y):
-    """Selects and evaluates the best model using Randomized Search and K-Fold Cross-Validation."""
-    
-    models = {
-        'XGBoost': XGBRegressor()
-    }
-
-    params = {
-        'XGBoost': {'n_estimators': [100, 200, 300, 400], 'learning_rate': [0.01, 0.05, 0.1, 0.2]}
-    }
-
-    best_models = {}
-    
-    for model_name in models:
-        random_search = RandomizedSearchCV(models[model_name], params[model_name], cv=5, scoring='neg_mean_squared_error', n_iter=50, random_state=42)
-        random_search.fit(X, y)
-        best_models[model_name] = random_search.best_estimator_
-
-        print(f"Best parameters for {model_name}: {random_search.best_params_}")
-
-        kf = KFold(n_splits=5)
-        mse_scores = []
-        r2_scores = []
-
-        for train_index, test_index in kf.split(X):
-            X_train_kf, X_test_kf = X[train_index], X[test_index]
-            y_train_kf, y_test_kf = y[train_index], y[test_index]
-
-            best_models[model_name].fit(X_train_kf, y_train_kf)
-            y_pred_kf = best_models[model_name].predict(X_test_kf)
-
-            mse_scores.append(mean_squared_error(y_test_kf, y_pred_kf))
-            r2_scores.append(r2_score(y_test_kf, y_pred_kf))
-
-        print(f"{model_name} Performance:")
-        print(f"Mean Squared Error: {np.mean(mse_scores)}")
-        print(f"R2 Score: {np.mean(r2_scores)}")
-
-# Example usage:
-# historical_data should be a DataFrame containing historical listings with features and prices.
-# new_listings should be a DataFrame containing new listings to be evaluated.
-
-# Prepare historical data and new listings data
-historical_data_df = prepare_data(historical_data)
-new_listings_df = prepare_data(new_listings)
-
-# Extract features from historical data and new listings data
-historical_data_df = extract_features(historical_data_df)
-new_listings_df = extract_features(new_listings_df)
-
-# Determine bargains in new listings based on historical data
-new_listings_df_with_bargains = determine_bargains(new_listings_df, historical_data_df)
-
-# Select and evaluate the best model using historical data
-X = historical_data_df.drop(columns=['price'])
-y = historical_data_df['price']
-select_and_evaluate_model(X, y)
+        return new_listings_df
+    except Exception as e:
+        print(f"Error determining bargains: {e}")
+        return None

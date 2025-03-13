@@ -2,6 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import re
+import pandas as pd
+from pymongo import MongoClient
 
 def convert_relative_date(date_str):
     today = datetime.today()
@@ -28,6 +30,43 @@ def extract_price(price_str):
         return None
     price_numbers = re.findall(r'\d+', price_str.replace("'", ""))
     return int("".join(price_numbers)) if price_numbers else None
+
+def is_bargain(price):
+    return price is not None and price < 3000
+
+def clean_scraped_data(scraped_data):
+    try:
+        scraped_data['price'] = scraped_data['price'].apply(lambda x: str(x) if pd.notnull(x) else "")
+        scraped_data['price'] = scraped_data['price'].apply(lambda x: extract_price(x) if isinstance(x, str) and x else None)
+
+        scraped_data['date'] = scraped_data['date'].apply(lambda x: convert_relative_date(x) if pd.notnull(x) else "No date found")
+        scraped_data['date'] = pd.to_datetime(scraped_data['date'], errors='coerce', dayfirst=True)
+
+        scraped_data['days_posted'] = scraped_data['days_posted'].apply(lambda x: int(x) if pd.notnull(x) else 0)
+        
+        return scraped_data
+    except Exception as e:
+        print(f"Error cleaning scraped data: {e}")
+        return None
+
+def save_to_mongodb(df, db_name='motorbikes', collection_name='listings'):
+    try:
+        client = MongoClient("mongodb://localhost:27017/")
+        db = client[db_name]
+        collection = db[collection_name]
+
+        df = df.fillna({"date": None})  # Fill NaT with None to avoid serialization issues
+        records = df.to_dict('records')
+
+        # Ensure no duplicates by checking URL
+        for item in records:
+            if not collection.find_one({"url": item.get("url")}):  # Use .get to prevent KeyError
+                collection.insert_one(item)
+                print(f"Inserted {item['url']} into MongoDB")
+            else:
+                print(f"Duplicate found: {item.get('url')}, skipping.")
+    except Exception as e:
+        print(f"Error saving data to MongoDB: {e}")
 
 def scrape_tutti_bikes(url, max_pages=2):
     bike_data = []
@@ -93,11 +132,16 @@ def scrape_tutti_bikes(url, max_pages=2):
                 "date": formatted_date,
                 "days_posted": days_posted,
                 "is_new": is_new,
-                "is_bargain": None,
+                "is_bargain": is_bargain(price),  # Check if the bike is a bargain
                 "image": image_url
             })
 
         print(f"Scraped page {page} with {len(listings)} listings.")
         page += 1
 
-    return bike_data
+    df = pd.DataFrame(bike_data)
+    df = clean_scraped_data(df)
+
+    save_to_mongodb(df)
+
+    return df
