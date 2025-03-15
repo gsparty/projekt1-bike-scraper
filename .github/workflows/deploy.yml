@@ -43,7 +43,9 @@ jobs:
       # Build and push Docker image to Azure Container Registry
       - name: Build and push Docker image
         run: |
+          echo "Starting Docker build..."
           az acr build --registry brodydan --image tuttibikes-app .
+          echo "Docker build completed."
         env:
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 
