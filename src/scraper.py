@@ -13,7 +13,7 @@ HEADERS = {
 }
 BASE_URL = "https://www.tutti.ch/de/q/motorraeder/Ak8CrbW90b3JjeWNsZXOUwMDAwA?sorting=newest"
 MAX_PAGES = 5
-MONGO_URI = "mongodb://localhost:27017/"
+MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
 DB_NAME = "tutti_bikes"
 COLLECTION_NAME = "listings"
 
