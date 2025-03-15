@@ -1,3 +1,4 @@
+import os
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
@@ -13,6 +14,8 @@ HEADERS = {
 }
 BASE_URL = "https://www.tutti.ch/de/q/motorraeder/Ak8CrbW90b3JjeWNsZXOUwMDAwA?sorting=newest"
 MAX_PAGES = 5
+
+# Get MongoDB URI from environment variables; defaults to localhost for local testing.
 MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
 DB_NAME = "tutti_bikes"
 COLLECTION_NAME = "listings"
@@ -77,15 +80,15 @@ def convert_relative_date(date_str):
         return "No date"
 
 def extract_price(price_str):
-    """
-    Extract price digits from a string.
-    For example, "1'800.-" becomes 1800.
-    """
+    """Precision price extraction with currency context awareness"""
     if not price_str:
         return None
-    # Remove apostrophes and then extract all digits
-    price_numbers = re.findall(r'\d+', price_str.replace("'", ""))
-    return int("".join(price_numbers)) if price_numbers else None
+    try:
+        # Remove apostrophes and other punctuation, then extract digits
+        price_numbers = re.findall(r'\d+', price_str.replace("'", ""))
+        return int("".join(price_numbers)) if price_numbers else None
+    except (ValueError, AttributeError, TypeError):
+        return None
 
 def parse_location_date(element):
     """Improved location/date parsing"""
@@ -127,22 +130,24 @@ def scrape_tutti_bikes(url, max_pages=5):
                     listing_url = f"https://www.tutti.ch{link_element['href']}" if link_element else None
 
                     # Title
-                    title_element = listing.find("div", class_="MuiBox-root mui-style-1haxbqe")
+                    title_element = listing.find("div", class_="mui-style-1haxbqe")
                     title = title_element.get_text(strip=True) if title_element else "No title"
 
                     # Description
                     desc_element = listing.find("span", class_="mui-style-kw4z3u")
                     description = desc_element.get_text(strip=True) if desc_element else "No description"
 
-                    # Price extraction using the old model approach:
+                    # Price extraction
                     price = None
+                    
+                    # First method: Official price element (old model approach)
                     price_container = listing.find("div", class_="MuiBox-root mui-style-1fhgjcy")
                     if price_container:
                         price_span = price_container.find("span")
                         price_str = price_span.get_text(strip=True) if price_span else None
                         price = extract_price(price_str) if price_str else None
 
-                    # Fallback: try to search for price in the description text
+                    # Second method: Search description for price patterns
                     if not price and description:
                         price_match = re.search(
                             r'(?:CHF|Preis|Prix|Price)[^\d]*(\d+(?:[\s\']?\d+)*)', 
