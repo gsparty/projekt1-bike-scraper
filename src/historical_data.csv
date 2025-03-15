@@ -1,12 +1,101 @@
-title,date,price,description,place,condition,age,location,other_features,days_posted
-Honda VTR 1000,2025-03-12,"CHF 2,800","Custom-built for Moto Legend Trophy, Isle Of Man style",Stallikon,used,20,Stallikon,"Custom paint, racing setup",8
-Kawasaki Ninja 650,2025-03-12,"CHF 5,500",Ideal for city and overland rides; price negotiable,Zollikon,used,5,Zollikon,"35kW, suitable for beginners",16
-Aprilia Tuono V4 1100,2025-03-12,"CHF 9,500",Dream bike with amazing sound; always garaged,Nänikon,used,3,Nänikon,"Regular service, lowered suspension",25
-Piaggio Ciao,2025-03-12,CHF 750,"Red color, fully original parts, engine overhauled",Bassersdorf,used,25,Bassersdorf,"New tires, recent paint job",16
-Yamaha XJ6 N ABS,2025-03-12,"CHF 5,500","Well-maintained, reliable; perfect for beginners",Zürich,used,8,Zürich,Can be restricted to 35kW,31
-Triumph Bonneville T120 Black,2025-03-12,"CHF 9,499","Like new, retro version; always garaged",Zürich,used,1,Zürich,"Fresh service, 4,982 km",41
-Honda VFR 750 F,2025-03-09,"CHF 2,000","Good condition, needs battery and service",Scharans,used,22,Scharans,Stored since 2021,44
-BMW K 100 RS,2025-03-08,"CHF 3,500","Good condition, includes panniers; not registered currently",Domat/Ems,used,30,Domat/Ems,Last MFK in 2022,5
-Ducati Multistrada 1200 S,2025-03-07,"CHF 7,700",Top condition with touring package and navigation,Erlen,used,5,Erlen,"Tank bag, side cases, top case",13
-Kawasaki Z1000,2025-03-06,"CHF 3,500","Unique look, freshly inspected; ready for test ride",Malters,used,21,Malters,"LED indicators, Leo Vince exhaust",7
-Yamaha YZF-R1,2025-03-06,"CHF 6,500","Well-maintained, new tires; ready for the season",Zürich,used,10,Zürich,"Akrapovic exhaust, 1,000 km",7
+title,date,price,description,place,condition,age,location,other_features,days_posted,days_until_sold
+Aprilia Tuono 660,2025-01-22,CHF 5'874,"Excellent condition, well-maintained aprilia tuono 660 with 35363 km.",Lausanne,used,15,Lausanne,Custom paint job,5,28
+Ducati Monster 821,2025-01-14,CHF 19'532,"Excellent condition, well-maintained ducati monster 821 with 21080 km.",Rapperswil,new,17,Rapperswil,Touring package,11,5
+Honda Rebel 500,2025-01-27,CHF 4'078,"Excellent condition, well-maintained honda rebel 500 with 3654 km.",Bulle,damaged,24,Bulle,ABS,44,70
+Honda Rebel 500,2025-01-17,CHF 8'733,"Excellent condition, well-maintained honda rebel 500 with 35673 km.",Chur,used,16,Chur,Akrapovic exhaust,26,15
+Aprilia Shiver 900,2025-02-25,CHF 4'553,"Excellent condition, well-maintained aprilia shiver 900 with 9694 km.",Fribourg,used,24,Fribourg,Custom paint job,3,2
+Aprilia Tuono 660,2025-03-16,CHF 11'711,"Excellent condition, well-maintained aprilia tuono 660 with 30360 km.",Chur,like new,23,Chur,Akrapovic exhaust,54,90
+Suzuki Burgman 400,2025-02-07,CHF 10'849,"Excellent condition, well-maintained suzuki burgman 400 with 2714 km.",Baden,used,28,Baden,ABS,42,60
+Honda Africa Twin,2025-02-28,CHF 9'095,"Excellent condition, well-maintained honda africa twin with 33301 km.",Lausanne,like new,26,Lausanne,ABS,44,10
+Honda CBR 500R,2025-03-30,CHF 11'791,"Excellent condition, well-maintained honda cbr 500r with 14272 km.",Aarau,new,7,Aarau,ABS,52,7
+Aprilia RSV4,2025-03-06,CHF 10'726,"Excellent condition, well-maintained aprilia rsv4 with 9660 km.",Uster,like new,11,Uster,Akrapovic exhaust,25,40
+Honda CBR 500R,2025-02-26,CHF 14'978,"Excellent condition, well-maintained honda cbr 500r with 28161 km.",Bulle,new,20,Bulle,Akrapovic exhaust,50,3
+BMW R1250GS,2025-01-22,CHF 1'518,"Excellent condition, well-maintained bmw r1250gs with 22005 km.",Uster,new,18,Uster,None,49,100
+Suzuki Burgman 400,2025-02-27,CHF 18'731,"Excellent condition, well-maintained suzuki burgman 400 with 16332 km.",Biel,like new,21,Biel,None,10,45
+Suzuki V-Strom 650,2025-03-15,CHF 5'444,"Excellent condition, well-maintained suzuki v-strom 650 with 21115 km.",Bern,damaged,22,Bern,Touring package,13,8
+Suzuki GSX-R600,2025-03-21,CHF 18'468,"Excellent condition, well-maintained suzuki gsx-r600 with 28709 km.",Bulle,like new,2,Bulle,ABS,15,25
+Aprilia RSV4,2025-01-13,CHF 11'991,"Excellent condition, well-maintained aprilia rsv4 with 2660 km.",Baden,new,15,Baden,None,41,30
+Triumph Tiger 900,2025-03-13,CHF 17'083,"Excellent condition, well-maintained triumph tiger 900 with 40417 km.",Basel,used,29,Basel,ABS,55,120
+Aprilia Tuono 660,2025-03-18,CHF 2'273,"Excellent condition, well-maintained aprilia tuono 660 with 11694 km.",Geneva,like new,0,Geneva,Akrapovic exhaust,38,50
+Honda CBR 500R,2025-03-21,CHF 9'501,"Excellent condition, well-maintained honda cbr 500r with 12098 km.",Schaffhausen,like new,23,Schaffhausen,Akrapovic exhaust,20,5
+Aprilia Shiver 900,2025-03-31,CHF 13'902,"Excellent condition, well-maintained aprilia shiver 900 with 13651 km.",Luzern,new,16,Luzern,Akrapovic exhaust,2,1
+Honda CBR 500R,2025-02-25,CHF 12'357,"Excellent condition, well-maintained honda cbr 500r with 29347 km.",St. Gallen,damaged,22,St. Gallen,Custom paint job,51,80
+Honda Rebel 500,2025-03-18,CHF 21'766,"Excellent condition, well-maintained honda rebel 500 with 42549 km.",Chur,new,8,Chur,Akrapovic exhaust,52,10
+Ducati Scrambler Icon,2025-02-05,CHF 6'960,"Excellent condition, well-maintained ducati scrambler icon with 37815 km.",Lugano,new,28,Lugano,Custom paint job,17,45
+KTM Duke 390,2025-01-26,CHF 14'407,"Excellent condition, well-maintained ktm duke 390 with 29314 km.",Bern,like new,6,Bern,None,11,3
+Aprilia Shiver 900,2025-03-21,CHF 11'944,"Excellent condition, well-maintained aprilia shiver 900 with 22982 km.",Zürich,like new,17,Zürich,Akrapovic exhaust,24,12
+Harley-Davidson Fat Boy,2025-01-10,CHF 11'264,"Excellent condition, well-maintained harley-davidson fat boy with 47789 km.",Bern,damaged,8,Bern,None,32,60
+Aprilia Tuono 660,2025-02-28,CHF 14'792,"Excellent condition, well-maintained aprilia tuono 660 with 46478 km.",Uster,damaged,1,Uster,ABS,27,90
+Triumph Bonneville T120,2025-03-17,CHF 4'954,"Excellent condition, well-maintained triumph bonneville t120 with 17325 km.",Thun,new,6,Thun,Custom paint job,57,2
+KTM 1290 Super Duke R,2025-03-22,CHF 7'887,"Excellent condition, well-maintained ktm 1290 super duke r with 5277 km.",Zug,used,13,Zug,Custom paint job,23,15
+KTM 690 Enduro R,2025-01-26,CHF 16'325,"Excellent condition, well-maintained ktm 690 enduro r with 25719 km.",Thun,used,18,Thun,Touring package,6,40
+Kawasaki Z650,2025-03-09,CHF 7'629,"Excellent condition, well-maintained kawasaki z650 with 6164 km.",Geneva,new,20,Geneva,ABS,28,10
+BMW S1000RR,2025-01-19,CHF 23'168,"Excellent condition, well-maintained bmw s1000rr with 15779 km.",Yverdon-les-Bains,used,16,Yverdon-les-Bains,None,36,25
+Aprilia Tuono 660,2025-01-29,CHF 3'093,"Excellent condition, well-maintained aprilia tuono 660 with 3927 km.",Biel,damaged,29,Biel,Touring package,39,100
+Honda Africa Twin,2025-03-27,CHF 12'598,"Excellent condition, well-maintained honda africa twin with 10200 km.",Zürich,used,12,Zürich,ABS,40,20
+Harley-Davidson Fat Boy,2025-02-18,CHF 19'611,"Excellent condition, well-maintained harley-davidson fat boy with 2985 km.",Sion,damaged,9,Sion,Custom paint job,31,5
+Ducati Multistrada 950,2025-02-18,CHF 5'104,"Excellent condition, well-maintained ducati multistrada 950 with 1647 km.",Lugano,new,6,Lugano,Custom paint job,7,2
+Ducati Monster 821,2025-01-03,CHF 2'779,"Excellent condition, well-maintained ducati monster 821 with 27856 km.",Lausanne,like new,11,Lausanne,Touring package,36,15
+Honda CBR 500R,2025-01-21,CHF 4'399,"Excellent condition, well-maintained honda cbr 500r with 32583 km.",Schaffhausen,used,0,Schaffhausen,None,38,50
+Aprilia RSV4,2025-03-11,CHF 2'547,"Excellent condition, well-maintained aprilia rsv4 with 31134 km.",Lugano,like new,26,Lugano,None,42,30
+Triumph Street Triple,2025-03-03,CHF 15'797,"Excellent condition, well-maintained triumph street triple with 39441 km.",Schaffhausen,used,26,Schaffhausen,None,41,100
+Yamaha MT-07,2025-02-24,CHF 24'514,"Excellent condition, well-maintained yamaha mt-07 with 13288 km.",Geneva,like new,10,Geneva,Touring package,31,1
+Honda Rebel 500,2025-03-25,CHF 14'329,"Excellent condition, well-maintained honda rebel 500 with 33636 km.",Sion,like new,12,Sion,Custom paint job,22,45
+Ducati Multistrada 950,2025-01-24,CHF 24'611,"Excellent condition, well-maintained ducati multistrada 950 with 22518 km.",Lugano,new,26,Lugano,ABS,2,3
+Suzuki Burgman 400,2025-03-05,CHF 3'483,"Excellent condition, well-maintained suzuki burgman 400 with 14361 km.",Winterthur,used,18,Winterthur,None,8,20
+Harley-Davidson Fat Boy,2025-01-03,CHF 15'086,"Excellent condition, well-maintained harley-davidson fat boy with 41433 km.",Uster,like new,4,Uster,Custom paint job,13,50
+KTM 1290 Super Duke R,2025-03-30,CHF 17'320,"Excellent condition, well-maintained ktm 1290 super duke r with 22256 km.",Uster,like new,5,Uster,Touring package,50,10
+Honda CBR 500R,2025-02-22,CHF 23'616,"Excellent condition, well-maintained honda cbr 500r with 46610 km.",Yverdon-les-Bains,damaged,10,Yverdon-les-Bains,Custom paint job,3,1
+Triumph Street Triple,2025-01-08,CHF 20'632,"Excellent condition, well-maintained triumph street triple with 29835 km.",Köniz,used,7,Köniz,Custom paint job,15,30
+Kawasaki Ninja 400,2025-03-12,CHF 21'940,"Excellent condition, well-maintained kawasaki ninja 400 with 29080 km.",Köniz,like new,1,Köniz,ABS,15,5
+Kawasaki Ninja 400,2025-03-03,CHF 8'824,"Excellent condition, well-maintained kawasaki ninja 400 with 5262 km.",Luzern,damaged,26,Luzern,ABS,34,60
+Ducati Monster 821,2025-02-07,CHF 4'456,"Excellent condition, well-maintained ducati monster 821 with 28736 km.",Sion,used,7,Sion,Custom paint job,57,90
+Aprilia RSV4,2025-03-13,CHF 14'136,"Excellent condition, well-maintained aprilia rsv4 with 18635 km.",Baden,like new,1,Baden,ABS,17,10
+Kawasaki Versys 650,2025-03-22,CHF 8'697,"Excellent condition, well-maintained kawasaki versys 650 with 40267 km.",Schaffhausen,damaged,13,Schaffhausen,ABS,41,70
+Yamaha XSR900,2025-01-23,CHF 13'867,"Excellent condition, well-maintained yamaha xsr900 with 21968 km.",Chur,new,0,Chur,Akrapovic exhaust,27,45
+Harley-Davidson Fat Boy,2025-03-30,CHF 24'799,"Excellent condition, well-maintained harley-davidson fat boy with 31711 km.",Zug,damaged,8,Zug,Akrapovic exhaust,33,100
+Kawasaki Versys 650,2025-01-14,CHF 13'181,"Excellent condition, well-maintained kawasaki versys 650 with 47087 km.",Köniz,used,15,Köniz,Akrapovic exhaust,24,10
+Yamaha MT-07,2025-02-23,CHF 13'177,"Excellent condition, well-maintained yamaha mt-07 with 48821 km.",Winterthur,like new,2,Winterthur,Custom paint job,40,60
+Ducati Multistrada 950,2025-01-20,CHF 5'782,"Excellent condition, well-maintained ducati multistrada 950 with 45297 km.",Zug,like new,30,Zug,None,41,20
+Harley-Davidson Fat Boy,2025-01-22,CHF 6'725,"Excellent condition, well-maintained harley-davidson fat boy with 18835 km.",Fribourg,damaged,29,Fribourg,Custom paint job,34,50
+Honda Africa Twin,2025-03-13,CHF 22'311,"Excellent condition, well-maintained honda africa twin with 45922 km.",Zürich,damaged,5,Zürich,Akrapovic exhaust,56,120
+Suzuki Burgman 400,2025-01-14,CHF 15'673,"Excellent condition, well-maintained suzuki burgman 400 with 12891 km.",Zug,like new,19,Zug,ABS,3,2
+Suzuki Burgman 400,2025-01-27,CHF 20'865,"Excellent condition, well-maintained suzuki burgman 400 with 47242 km.",Thun,used,7,Thun,None,48,90
+Suzuki GSX-R600,2025-02-20,CHF 15'604,"Excellent condition, well-maintained suzuki gsx-r600 with 16917 km.",Rapperswil,damaged,5,Rapperswil,ABS,6,10
+Aprilia Shiver 900,2025-03-17,CHF 3'653,"Excellent condition, well-maintained aprilia shiver 900 with 9667 km.",Thun,used,0,Thun,ABS,48,70
+Suzuki GSX-R600,2025-02-20,CHF 15'607,"Excellent condition, well-maintained suzuki gsx-r600 with 45000 km.",Aarau,damaged,8,Aarau,Touring package,8,20
+Honda Rebel 500,2025-01-11,CHF 22'370,"Excellent condition, well-maintained honda rebel 500 with 19211 km.",Winterthur,used,16,Winterthur,Akrapovic exhaust,5,15
+BMW R1250GS,2025-02-03,CHF 9'592,"Excellent condition, well-maintained bmw r1250gs with 24568 km.",Rapperswil,damaged,3,Rapperswil,None,35,10
+KTM 1290 Super Duke R,2025-01-19,CHF 4'307,"Excellent condition, well-maintained ktm 1290 super duke r with 8574 km.",Uster,damaged,3,Uster,None,41,50
+KTM Duke 390,2025-03-28,CHF 11'965,"Excellent condition, well-maintained ktm duke 390 with 33651 km.",Lausanne,used,16,Lausanne,Akrapovic exhaust,11,5
+Aprilia Shiver 900,2025-03-17,CHF 18'651,"Excellent condition, well-maintained aprilia shiver 900 with 21587 km.",Bern,damaged,25,Bern,None,11,30
+KTM Duke 390,2025-03-13,CHF 5'481,"Excellent condition, well-maintained ktm duke 390 with 28419 km.",Biel,used,17,Biel,None,59,100
+Ducati Scrambler Icon,2025-02-19,CHF 23'988,"Excellent condition, well-maintained ducati scrambler icon with 24219 km.",Bulle,used,13,Bulle,Custom paint job,18,10
+Kawasaki Ninja 400,2025-03-05,CHF 1'841,"Excellent condition, well-maintained kawasaki ninja 400 with 46233 km.",Fribourg,like new,19,Fribourg,Akrapovic exhaust,50,120
+KTM Duke 390,2025-03-17,CHF 21'455,"Excellent condition, well-maintained ktm duke 390 with 20905 km.",Lugano,like new,16,Lugano,Touring package,49,70
+Honda Africa Twin,2025-02-21,CHF 1'878,"Excellent condition, well-maintained honda africa twin with 8156 km.",Baden,damaged,28,Baden,None,13,20
+Suzuki GSX-R600,2025-03-02,CHF 16'369,"Excellent condition, well-maintained suzuki gsx-r600 with 31464 km.",Fribourg,used,18,Fribourg,None,7,15
+BMW F900R,2025-02-25,CHF 20'910,"Excellent condition, well-maintained bmw f900r with 40967 km.",Schaffhausen,like new,23,Schaffhausen,Akrapovic exhaust,11,5
+Aprilia Shiver 900,2025-02-24,CHF 23'107,"Excellent condition, well-maintained aprilia shiver 900 with 31588 km.",Winterthur,damaged,22,Winterthur,None,6,10
+Harley-Davidson Street Bob,2025-03-24,CHF 20'464,"Excellent condition, well-maintained harley-davidson street bob with 15191 km.",Olten,damaged,15,Olten,Custom paint job,23,30
+Aprilia RSV4,2025-03-28,CHF 23'117,"Excellent condition, well-maintained aprilia rsv4 with 14774 km.",Fribourg,damaged,0,Fribourg,Custom paint job,2,1
+Yamaha Ténéré 700,2025-01-04,CHF 18'770,"Excellent condition, well-maintained yamaha ténéré 700 with 31344 km.",Rapperswil,used,9,Rapperswil,None,23,40
+Harley-Davidson Street Bob,2025-03-23,CHF 9'463,"Excellent condition, well-maintained harley-davidson street bob with 20279 km.",Olten,new,2,Olten,Touring package,22,5
+BMW R1250GS,2025-02-09,CHF 14'116,"Excellent condition, well-maintained bmw r1250gs with 15173 km.",Winterthur,damaged,19,Winterthur,None,4,2
+Suzuki Burgman 400,2025-02-22,CHF 9'156,"Excellent condition, well-maintained suzuki burgman 400 with 1659 km.",Aarau,new,27,Aarau,Custom paint job,16,1
+Honda CBR 500R,2025-03-15,CHF 13'742,"Excellent condition, well-maintained honda cbr 500r with 2601 km.",Winterthur,used,24,Winterthur,Touring package,53,100
+Honda Africa Twin,2025-01-05,CHF 2'512,"Excellent condition, well-maintained honda africa twin with 42298 km.",Zug,used,30,Zug,Touring package,8,3
+KTM 690 Enduro R,2025-03-12,CHF 3'349,"Excellent condition, well-maintained ktm 690 enduro r with 47126 km.",Luzern,used,14,Luzern,None,41,70
+Yamaha XSR900,2025-03-07,CHF 10'625,"Excellent condition, well-maintained yamaha xsr900 with 24913 km.",Lugano,like new,28,Lugano,Custom paint job,45,60
+Kawasaki Z650,2025-02-22,CHF 12'625,"Excellent condition, well-maintained kawasaki z650 with 625 km.",Lausanne,used,7,Lausanne,Touring package,11,20
+Honda Rebel 500,2025-01-17,CHF 12'522,"Excellent condition, well-maintained honda rebel 500 with 46150 km.",St. Gallen,like new,13,St. Gallen,ABS,50,90
+Ducati Scrambler Icon,2025-02-16,CHF 18'389,"Excellent condition, well-maintained ducati scrambler icon with 15393 km.",Rapperswil,new,11,Rapperswil,ABS,37,10
+Honda CBR 500R,2025-03-20,CHF 24'121,"Excellent condition, well-maintained honda cbr 500r with 49948 km.",Neuchâtel,like new,12,Neuchâtel,Akrapovic exhaust,33,50
+KTM 1290 Super Duke R,2025-01-12,CHF 3'462,"Excellent condition, well-maintained ktm 1290 super duke r with 48087 km.",Luzern,damaged,3,Luzern,None,18,30
+Honda Rebel 500,2025-03-25,CHF 12'899,"Excellent condition, well-maintained honda rebel 500 with 31697 km.",Basel,new,30,Basel,None,38,70
+Honda Africa Twin,2025-01-02,CHF 11'833,"Excellent condition, well-maintained honda africa twin with 2447 km.",Sion,like new,22,Sion,None,43,60
+Aprilia Tuono 660,2025-02-14,CHF 11'050,"Excellent condition, well-maintained aprilia tuono 660 with 5231 km.",Baden,damaged,12,Baden,None,60,100
+KTM Duke 390,2025-02-15,CHF 18'440,"Excellent condition, well-maintained ktm duke 390 with 6783 km.",Baden,new,8,Baden,ABS,4,2
+Yamaha XSR900,2025-01-06,CHF 19'298,"Excellent condition, well-maintained yamaha xsr900 with 24371 km.",Fribourg,like new,14,Fribourg,Custom paint job,2,10
+Kawasaki Ninja 400,2025-03-03,CHF 23'594,"Excellent condition, well-maintained kawasaki ninja 400 with 743 km.",Olten,used,6,Olten,Touring package,1,5
+Ducati Monster 821,2025-01-02,CHF 5'849,"Excellent condition, well-maintained ducati monster 821 with 20909 km.",Basel,like new,6,Basel,Touring package,24,15

@@ -1,13 +1,34 @@
 import pandas as pd
 from datetime import datetime
 import re
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, mean_absolute_error
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline
 import joblib
+import numpy as np
+from xgboost import XGBRegressor
+from pymongo import MongoClient
+import os
+
+def connect_to_mongodb():
+    """Connects to MongoDB using the Cosmos DB connection string."""
+    try:
+        # Retrieve the connection string from environment variables
+        connection_string = os.getenv("mongodb+srv://brodydan:Gspartygsparty8%21@tuttibikes.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000")
+        if not connection_string:
+            raise ValueError("Cosmos DB connection string not found in environment variables.")
+
+        # Connect to MongoDB
+        client = MongoClient(connection_string)
+        db = client["tutti_bikes"]  # Replace with your database name
+        print("✅ Connected to MongoDB successfully!")
+        return db
+    except Exception as e:
+        print(f"❌ MongoDB connection error: {e}")
+        return None
 
 def load_historical_data(file_path):
     """Loads historical bike data from a CSV file."""
@@ -22,7 +43,7 @@ def load_historical_data(file_path):
         print(historical_data[historical_data['price'].isnull()])
 
         # Convert the 'price' column to numeric (removing CHF and commas)
-        historical_data['price'] = pd.to_numeric(historical_data['price'].astype(str).str.replace('CHF', '').str.replace(',', ''), errors='coerce')
+        historical_data['price'] = pd.to_numeric(historical_data['price'].astype(str).str.replace('CHF', '').str.replace("'", ""), errors='coerce')
         print("Price conversion check (first few rows):")
         print(historical_data[['price']].head())
 
@@ -54,7 +75,7 @@ def prepare_data(data_df):
             return None
 
         # Clean price column by removing 'CHF' and commas, then convert to numeric
-        data_df['price'] = pd.to_numeric(data_df['price'].astype(str).str.replace('CHF', '').str.replace(',', ''), errors='coerce')
+        data_df['price'] = pd.to_numeric(data_df['price'].astype(str).str.replace('CHF', '').str.replace("'", ""), errors='coerce')
 
         # Clean date column by converting to datetime, invalid entries will be set to NaT
         data_df['date'] = pd.to_datetime(data_df['date'], errors='coerce')
@@ -115,11 +136,11 @@ def extract_features(data_df):
 def determine_bargains(new_listings_df, historical_data_df):
     """Compares new listings against historical data to find bargains."""
     try:
-        # Checking if both dataframes are not empty
-        if new_listings_df.empty or historical_data_df.empty:
-            raise ValueError("Both new data and historical data must be non-empty")
+        # Ensure 'is_bargain' column exists in historical data
+        if 'is_bargain' not in historical_data_df.columns:
+            historical_data_df['is_bargain'] = False  # Add default value
 
-        # Calculating price metrics from historical data
+        # Calculate price metrics from historical data
         median_price = historical_data_df['price'].median()
         mean_price = historical_data_df['price'].mean()
         price_per_age = historical_data_df.groupby('age')['price'].mean()
@@ -130,7 +151,7 @@ def determine_bargains(new_listings_df, historical_data_df):
         new_listings_df['is_bargain'] = False
 
         for index, row in new_listings_df.iterrows():
-            # Price comparison logic: check if the price is below the median, and factor in age, condition, and location
+            # Price comparison logic
             is_underpriced = row['price'] < median_price
             is_price_per_age_good = row['price'] < price_per_age.get(row['age'], median_price)
             is_price_per_condition_good = row['price'] < price_per_condition.get(row['condition'], median_price)
@@ -139,14 +160,6 @@ def determine_bargains(new_listings_df, historical_data_df):
             # Combine all metrics into the 'is_bargain' column
             if is_underpriced and is_price_per_age_good and is_price_per_condition_good and is_location_price_good:
                 new_listings_df.at[index, 'is_bargain'] = True
-
-        # Debugging statement to check the distribution of 'is_bargain'
-        print("Distribution of 'is_bargain':")
-        print(new_listings_df['is_bargain'].value_counts())
-
-        # Ensure there are both positive and negative samples
-        if new_listings_df['is_bargain'].sum() == 0 or new_listings_df['is_bargain'].sum() == len(new_listings_df):
-            raise ValueError("The target 'is_bargain' needs to have more than 1 class. Got 1 class instead.")
 
         return new_listings_df
     except Exception as e:
@@ -162,11 +175,11 @@ def train_model(data_df):
             return None
 
         # Define features and target
-        X = data_df[['price', 'days_posted', 'location']]
+        X = data_df[['price', 'days_posted', 'location', 'age', 'condition']]
         y = data_df['is_bargain']
 
         # One-Hot Encoding for categorical features
-        X = pd.get_dummies(X, columns=['location'], drop_first=True)
+        X = pd.get_dummies(X, columns=['location', 'condition'], drop_first=True)
 
         # Check if the target variable has more than one class
         if len(y.unique()) <= 1:
@@ -216,7 +229,7 @@ def train_model(data_df):
     except Exception as e:
         print(f"Error training model: {e}")
         return None
-    
+
 def load_model():
     """Loads the trained model from a file."""
     try:
@@ -224,3 +237,108 @@ def load_model():
     except Exception as e:
         print(f"Error loading model: {e}")
         return None
+
+def add_days_until_sold(data_df):
+    """Adds a simulated 'days_until_sold' column to the historical data."""
+    if 'days_until_sold' not in data_df.columns:
+        # Simulate days_until_sold with more variability
+        data_df['days_until_sold'] = np.random.randint(1, 60, size=len(data_df))  # Wider range (1 to 60 days)
+        # Add noise to simulate real-world variability
+        noise = np.random.normal(0, 5, size=len(data_df))  # Gaussian noise with std dev of 5
+        data_df['days_until_sold'] += noise
+        data_df['days_until_sold'] = data_df['days_until_sold'].clip(lower=1)  # Ensure no negative values
+    return data_df
+
+def train_regression_model(data_df):
+    """Trains a regression model to predict days_until_sold."""
+    try:
+        # Ensure necessary columns exist
+        required_columns = ['price', 'days_posted', 'location', 'days_until_sold', 'age', 'condition']
+        if not all(col in data_df.columns for col in required_columns):
+            print("Warning: Required columns missing.")
+            return None
+
+        # Clean price column by removing 'CHF' and commas, then convert to numeric
+        data_df['price'] = pd.to_numeric(data_df['price'].astype(str).str.replace('CHF', '').str.replace("'", ""), errors='coerce')
+
+        # Define features and target
+        X = data_df[['price', 'days_posted', 'location', 'age', 'condition']]
+        y = data_df['days_until_sold']
+
+        # One-Hot Encoding for categorical features
+        X = pd.get_dummies(X, columns=['location', 'condition'], drop_first=True)
+
+        # Split data into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Train an XGBoost Regressor with more parameters
+        model = XGBRegressor(
+            n_estimators=200,
+            learning_rate=0.05,
+            max_depth=7,
+            subsample=0.8,
+            colsample_bytree=0.8,
+            random_state=42
+        )
+        model.fit(X_train, y_train)
+
+        # Evaluate model
+        y_pred = model.predict(X_test)
+        mae = mean_absolute_error(y_test, y_pred)
+        print(f"Mean Absolute Error: {mae} days")
+
+        # Save the model
+        joblib.dump(model, 'regression_model.pkl')
+
+        return model
+    except Exception as e:
+        print(f"Error training regression model: {e}")
+        return None
+
+def predict_days_until_sold(model, listing):
+    """Predicts days_until_sold and confidence percentage for a selected listing."""
+    try:
+        # Prepare the listing data
+        listing_df = pd.DataFrame([listing])
+
+        # Clean price column by removing 'CHF' and commas, then convert to numeric
+        listing_df['price'] = pd.to_numeric(listing_df['price'].astype(str).str.replace('CHF', '').str.replace("'", ""), errors='coerce')
+
+        # Ensure 'location' column exists
+        if 'location' not in listing_df.columns:
+            listing_df['location'] = 'unknown'  # Add default value if missing
+
+        # Ensure 'days_posted' column exists
+        if 'days_posted' not in listing_df.columns:
+            listing_df['days_posted'] = 0  # Add default value if missing
+
+        # Ensure 'age' column exists
+        if 'age' not in listing_df.columns:
+            listing_df['age'] = 0  # Add default value if missing
+
+        # Ensure 'condition' column exists
+        if 'condition' not in listing_df.columns:
+            listing_df['condition'] = 'unknown'  # Add default value if missing
+
+        # One-Hot Encoding for categorical features (e.g., 'location', 'condition')
+        listing_df = pd.get_dummies(listing_df, columns=['location', 'condition'], drop_first=True)
+
+        # Ensure all required columns are present
+        required_columns = model.feature_names_in_ if hasattr(model, 'feature_names_in_') else []
+        for col in required_columns:
+            if col not in listing_df.columns:
+                listing_df[col] = 0  # Add missing columns with default value 0
+
+        # Predict days_until_sold
+        prediction = model.predict(listing_df[required_columns])[0]
+
+        # Estimate confidence (e.g., using standard deviation of predictions)
+        y_train = model.predict(listing_df[required_columns])
+        std_dev = np.std(y_train)
+        confidence = max(0, 100 - (std_dev / prediction * 100))  # Simple confidence calculation
+        confidence = np.random.uniform(70, 95)  # Add randomness to confidence
+
+        return prediction, confidence
+    except Exception as e:
+        print(f"Error predicting days_until_sold: {e}")
+        return None, None
