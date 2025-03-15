@@ -1,5 +1,6 @@
 import streamlit as st
-from scraper import scrape_tutti_bikes
+import pandas as pd
+from scraper import scrape_tutti_bikes, save_to_mongo
 from model import prepare_data, extract_features, determine_bargains, load_historical_data, train_model, load_model
 import requests
 
@@ -42,15 +43,18 @@ def main():
             data = scrape_tutti_bikes(BASE_URL, max_pages=5)
             st.write(f"Scraped {len(data)} listings.")
 
-        if data.empty:  # Check if the DataFrame is empty
+        if not data:  # Check if the list is empty
             st.warning("❌ No listings found. Check the website or try later.")
         else:
             st.success(f"✅ Scraped {len(data)} listings successfully!")
-            st.write(data.head())  # Show first few results
+            st.write(pd.DataFrame(data).head())  # Show first few results
+
+            # Save scraped data to MongoDB
+            save_to_mongo(data)
 
             # Prepare and visualize data
             try:
-                df = prepare_data(data)
+                df = prepare_data(pd.DataFrame(data))
                 if df is not None:
                     df = extract_features(df)
                     st.write(df.head())  # Show first few rows of the dataframe
