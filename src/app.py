@@ -20,7 +20,7 @@ def check_ip():
 
 # Streamlit UI
 def main():
-    st.title("Bike Scraper 🚴‍♂️")
+    st.title("Bike Scraper 🚴‍♂️ Brodydan")
 
     # Sidebar for additional options
     st.sidebar.title("Options")
