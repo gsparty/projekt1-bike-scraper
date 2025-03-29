@@ -1,6 +1,5 @@
 name: ModelOps (Build, Deploy)
 # Requires GitHub Action Secrets: AZURE_WEBAPP_NAME, AZURE_WEBAPP_PUBLISH_PROFILE
-# Requires Azure Env Variable: AZURE_STORAGE_CONNECTION_STRING
 
 on:
     workflow_dispatch:
@@ -26,7 +25,7 @@ jobs:
             with:
                 registry: ghcr.io
                 username: ${{ github.actor }}
-                password: ${{ secrets.GITHUB_PAT }}
+                password: ${{ secrets.GITHUB_TOKEN }}
           
           - name: Lowercase the repo name and username
             run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
