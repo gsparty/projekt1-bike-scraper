@@ -36,7 +36,7 @@ jobs:
                 context: .
                 push: true
                 tags: ghcr.io/${{ env.REPO }}:${{ github.sha }}
-                file: ./Dockerfile    
+                file: C:\Users\danie\MDM\projekt1-bike-scraper\src\Dockerfile 
 
     deploy:
       needs: build  
