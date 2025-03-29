@@ -42,12 +42,12 @@ jobs:
     deploy:
       needs: build  
       runs-on: ubuntu-latest
-      
+          
       steps:
       - name: Lowercase the repo name and username
         run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
       
-      - name: Deploy to Azure Web App
+      - name: Deploy to Azure Web App using Publish Profile
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
