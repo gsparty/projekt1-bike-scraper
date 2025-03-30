@@ -35,7 +35,7 @@ jobs:
                 context: .
                 push: true
                 tags: ghcr.io/${{ env.REPO }}:${{ github.sha }}
-                file: ./src/Dockerfile  
+                file: ./src/Dockerfile  # ✅ Ensure the path is correct
 
     deploy:
       needs: build  
