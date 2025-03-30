@@ -7,7 +7,7 @@ COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-COPY src/historical_data.csv /app/historical_data.csv
+COPY historical_data.csv /app/historical_data.csv
 
 COPY . .
 
