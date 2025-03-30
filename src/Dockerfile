@@ -7,11 +7,12 @@ COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# First copy the entire project (excluding historical_data.csv if missing)
+# Copy the entire project EXCEPT `historical_data.csv` (to prevent errors)
 COPY . .
 
-# Then explicitly copy historical_data.csv if it exists
-RUN test -f historical_data.csv && cp historical_data.csv /app/historical_data.csv || echo "historical_data.csv not found, skipping..."
+# Ensure the CSV file is copied only if it exists
+ARG CSV_FILE=historical_data.csv
+RUN if [ -f "$CSV_FILE" ]; then cp "$CSV_FILE" /app/; else echo "historical_data.csv not found, skipping..."; fi
 
 EXPOSE 8501
 
