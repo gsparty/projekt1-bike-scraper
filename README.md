@@ -29,13 +29,11 @@
 
 o	Titel  
 o	Preis  
-o	Standort  
-
+o	Standort 
 o	Veröffentlichungsdatum
 
 
-•  Frameworks: BeautifulSoup, requests, Streamlit.¨
-
+•  Frameworks: BeautifulSoup, requests, Streamlit
 
 
 •  Fehlerbehandlung: Statuscodes werden überwacht und Fehler (z.B. 404) informativ protokolliert.
@@ -43,46 +41,36 @@ o	Veröffentlichungsdatum
 
 ### Training
 
-•  Ziel: Das Modell wurde trainiert, um die Wahrscheinlichkeit zu bestimmen, ob ein Motorrad innerhalb von 30 Tagen verkauft wird.
+•  Ziel: Das Modell wurde trainiert, um die Geschätzte Verkaufszeit und dessen Wahrscheinlichkeit zu bestimmen.
 
 
-•  Feature Engineering:
+Feature Engineering:
 
 
 •	Tage seit der Veröffentlichung berechnet.
 
-
 •	Titel analysiert, um Schlüsselbegriffe für Motorradtypen (z. B. "Mountain", "Road") zu extrahieren.
-
 
 •  Datenbereinigung: Fehlende Preise wurden durch den Medianwert ersetzt; Datumsformate wurden standardisiert.
 
-
 •  Algorithmus: Random Forest Classifier.
 
-
 •  Evaluierung: Mittels classification_report geprüft. Metrics wie Precision, Recall und F1-Score wurden berücksichtigt.
-
 
 
 ### ModelOps Automation
 
 •  Pipeline: Eine automatisierte Pipeline für Scraping, Datenvorbereitung und Modelltraining ist geplant.
 
-
 •  Abhängigkeiten: Management über requirements.txt. Enthält Bibliotheken wie pandas, scikit-learn, numpy und Flask.
 
-
 •  Versionierung: Alle Änderungen werden mithilfe von GitHub dokumentiert.
-
 
 ### Deployment
 
 •  Plattform: Azure für Skalierbarkeit und Verfügbarkeit.
 
-
 •  Interface: Die Anwendung ist über Streamlit zugänglich. Benutzer können IP Adresse abrufen, Modell trainieren & Scraping ausführen und Vorhersagen direkt abrufen.
-
 
 •  Deployment-Prozess: Beinhaltet die Bereitstellung der Anwendung auf Azure mit Integration des Modells.
 
