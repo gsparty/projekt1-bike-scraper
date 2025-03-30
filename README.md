@@ -27,11 +27,9 @@
 •	Extrahierte Datenfelder:
 
 
-o	Titel
-
-o	Preis
-
-o	Standort
+o	Titel  
+o	Preis  
+o	Standort  
 
 o	Veröffentlichungsdatum
 
@@ -83,7 +81,7 @@ o	Veröffentlichungsdatum
 •  Plattform: Azure für Skalierbarkeit und Verfügbarkeit.
 
 
-•  Interface: Die Anwendung ist über Streamlit zugänglich. Benutzer können Scraping ausführen und Vorhersagen direkt abrufen.
+•  Interface: Die Anwendung ist über Streamlit zugänglich. Benutzer können IP Adresse abrufen, Modell trainieren & Scraping ausführen und Vorhersagen direkt abrufen.
 
 
 •  Deployment-Prozess: Beinhaltet die Bereitstellung der Anwendung auf Azure mit Integration des Modells.
