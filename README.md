@@ -29,7 +29,7 @@
 
 o	Titel  
 o	Preis  
-o	Standort 
+o	Standort  
 o	Veröffentlichungsdatum
 
 
@@ -41,7 +41,7 @@ o	Veröffentlichungsdatum
 
 ### Training
 
-•  Ziel: Das Modell wurde trainiert, um die Geschätzte Verkaufszeit und dessen Wahrscheinlichkeit zu bestimmen.
+Das Modell wurde trainiert, um die Geschätzte Verkaufszeit und dessen Wahrscheinlichkeit zu bestimmen.
 
 
 Feature Engineering:
